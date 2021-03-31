@@ -1,18 +1,20 @@
 <script lang="ts">
+  import kd from 'keydrown'
   import { onMount } from 'svelte'
   import { createPlayer } from './engine/Actors/Player'
+  import { createAtlas } from './engine/atlas'
   import { createRenderer } from './engine/createRenderer'
-  import loadSprites from './engine/utils/loadSprites'
 
   let canvas: HTMLCanvasElement
 
   onMount(async () => {
-    await loadSprites()
+    const atlas = await createAtlas()
     const render = await createRenderer(canvas.getContext('2d'))
-    const player = await createPlayer()
+    const player = createPlayer(atlas.warrior)
 
     function gameLoop() {
-      player.onUpdate()
+      kd.tick()
+      player.onUpdate(kd)
       render(player)
       requestAnimationFrame(gameLoop)
     }
