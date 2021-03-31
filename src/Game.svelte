@@ -12,6 +12,7 @@
     const player = await createPlayer()
 
     function gameLoop() {
+      player.onUpdate()
       render(player)
       requestAnimationFrame(gameLoop)
     }

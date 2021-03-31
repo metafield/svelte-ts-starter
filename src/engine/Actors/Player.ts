@@ -7,22 +7,42 @@ export async function createPlayer(): Promise<Actor> {
   Atlas.subscribe((sprites) => {
     warriorImg = sprites.warrior
   })
-  console.log(warriorImg)
+
   const warriorSheet = new SpriteGrid(6, 17, 69, 44)
-  const idleAnim = warriorSheet.slice(0, 6)
-  const runAnim = warriorSheet.slice(6, 8)
+  const idleAnimFrames = warriorSheet.slice(0, 6)
+  const runAnimFrames = warriorSheet.slice(6, 8)
+  const anims = [
+    {
+      name: 'idle',
+      frames: idleAnimFrames,
+      speed: 100, // 100 is 6f per frame. 6 being 10% of 60fps
+      length: idleAnimFrames.length,
+    },
+    {
+      name: 'run',
+      frames: runAnimFrames,
+      speed: 150,
+      length: runAnimFrames.length,
+    },
+  ]
+
+  let currentAnimation = anims[0]
+
+  let frame = 0
+  const description = {
+    sourceTexture: warriorImg,
+    sourceRect: currentAnimation[frame],
+    scale: 4,
+  }
 
   return {
-    description: {
-      sourceTexture: warriorImg,
-      sourceRect: idleAnim[0],
-      scale: 4,
-    },
+    description,
     texture: warriorImg,
-    anims: [
-      { name: 'idle', frames: idleAnim, speed: 150 },
-      { name: 'run', frames: runAnim, speed: 150 },
-    ],
-    onUpdate() {},
+    anims,
+    onUpdate() {
+      frame = Math.floor((performance.now() / anims[0].speed) % anims[0].length)
+      description.sourceRect = idleAnimFrames[frame]
+      console.log(frame)
+    },
   }
 }
