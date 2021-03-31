@@ -1,3 +1,3 @@
 import { writable } from 'svelte/store'
 
-export const atlas = writable({})
+export const Atlas = writable(null)

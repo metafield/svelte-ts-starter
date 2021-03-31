@@ -1,6 +1,6 @@
-import { Rect } from './Rect'
+import type { Rect } from '../types'
 
-class Sheet {
+class SpriteGrid {
   constructor(
     public cols: number,
     public rows: number,
@@ -19,17 +19,16 @@ class Sheet {
       console.log('x is: ', x)
       y = ~~((i + startIndex) / this.cols)
 
-      // console.log(` ${y} = (${x + startIndex}) / ${this.cols}`)
-      cells[i] = new Rect(
-        x * this.cellSizeX,
-        y * this.cellSizeY,
-        this.cellSizeX,
-        this.cellSizeY
-      )
+      cells[i] = {
+        x: x * this.cellSizeX,
+        y: y * this.cellSizeY,
+        width: this.cellSizeX,
+        height: this.cellSizeY,
+      }
     }
 
     return cells
   }
 }
 
-export default Sheet
+export default SpriteGrid
