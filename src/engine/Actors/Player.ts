@@ -1,84 +1,81 @@
-import type { Actor, Visual } from '../types'
+import type {
+  Actor,
+  Animation,
+  Description,
+  Rect,
+  Renderable,
+  Skin,
+} from '../types'
 
-export function createPlayer(visual: Visual): Actor {
-  const { anims } = visual
-  let curAnim = anims['idle']
-  let frame = 0
-  let animEnded = false
-  let state: 'standing' | 'crouching' | 'running' = 'standing'
+export class Animator {
+  frameIndex = 0
+  lastUpdate = performance.now()
 
-  const player = {
-    frameCount: 0,
-    lastUpdate: 0,
-    queue: [curAnim],
-    update() {
-      console.log(performance.now() - player.lastUpdate > curAnim.speed)
-      if (performance.now() - player.lastUpdate > curAnim.speed) {
-        player.lastUpdate = performance.now()
-        player.frameCount++
-        if (player.frameCount + 1 === curAnim.length) player.frameCount = 0
-      }
-      return player.queue[0].frames[player.frameCount]
-      // player.frame = Math.floor((performance.now() / curAnim.speed) % curAnim.length)
-    },
-  }
+  constructor(private animation: Animation) {}
 
-  const description = {
-    sourceTexture: visual.img,
-    sourceRect: curAnim.frames[frame],
-    scale: 4,
-  }
+  advance(amount: number) {
+    let nextValue = this.frameIndex + amount
 
-  function setAnim(name: keyof typeof anims) {
-    // go to next animation
-    if (animEnded && curAnim.next) {
-      console.log('going to next ', curAnim.next)
-      animEnded = false
-      curAnim = anims[curAnim.next]
-      frame = 0
+    if (this.frameIndex === this.animation.length - 1) {
+      // call onEnd subscribers
+      this.animation = null
       return
     }
 
-    if (name === curAnim.name) return
+    if (nextValue < 0) nextValue = 0
 
-    animEnded = false
-    frame = 0
-    curAnim = anims[name]
+    this.frameIndex = nextValue
+    this.lastUpdate = performance.now()
   }
 
-  function animByInput(keys) {
+  update() {
+    if (!this.animation) return
+    if (performance.now() - this.lastUpdate > this.animation.speed) {
+      this.advance(1)
+    }
+  }
+
+  getFrame(): Rect {
+    return this.animation.frames[this.frameIndex]
+  }
+
+  setAnimation(animation: Animation) {
+    // TODO: not sure if we want to do nothing if the ani is the same yet
+
+    if (animation.name === this?.animation?.name) return
+
+    this.frameIndex = 0
+    this.lastUpdate = performance.now()
+    this.animation = animation
+  }
+}
+
+export class Player implements Actor {
+  description: Description
+  state: 'standing' | 'crouching' | 'running' = 'standing' // belongs in desc?
+
+  constructor(private skin: Skin, private animator: Animator) {}
+
+  setDescription(description: Description) {
+    this.description = description
+  }
+
+  private handleKeys(keys: any) {
     if (keys.D.isDown()) {
-      setAnim('run')
+      this.animator.setAnimation(this.skin.anims.run)
       return
-    } else if (keys.S.isDown()) {
-      if (curAnim.name === 'crouchIdle') return
-      setAnim('crouch')
-      return
-    } else if (keys.L.isDown()) {
-      setAnim('slash')
-      return
-    } else {
-      setAnim('idle')
     }
+
+    this.animator.setAnimation(this.skin.anims.idle)
   }
 
-  function onUpdate(keys) {
-    description.sourceRect = player.update()
-    // animByInput(keys)
-    // curAnim = anims['slash']
-
-    // if (curAnim.oneShot && frame === curAnim.length - 1) animEnded = true
-
-    // if (curAnim.oneShot && animEnded) {
-    //   frame = curAnim.length - 1
-    // }
-    // description.sourceRect = curAnim.frames[frame]
-
-    // frame = Math.floor((performance.now() / curAnim.speed) % curAnim.length)
-  }
-
-  return {
-    description,
-    onUpdate,
+  onUpdate(keys: any) {
+    this.animator.update()
+    this.handleKeys(keys)
+    this.setDescription({
+      scale: 4,
+      sourceRect: this.animator.getFrame(),
+      sourceImg: this.skin.img,
+    })
   }
 }

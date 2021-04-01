@@ -11,7 +11,7 @@ export function createRenderer(ctx: CanvasRenderingContext2D) {
 
     ctx.clearRect(0, 0, 800, 600)
     ctx.drawImage(
-      entity.description.sourceTexture,
+      entity.description.sourceImg,
       // source rectangle
       sourceRect.x,
       sourceRect.y,

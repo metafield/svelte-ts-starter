@@ -13,19 +13,21 @@ export type Animation = {
   oneShot: boolean
 }
 
+export interface Description {
+  sourceImg: HTMLImageElement
+  sourceRect: Rect
+  scale: number
+}
+
 export interface Renderable {
-  description: {
-    sourceTexture: HTMLImageElement
-    sourceRect: Rect
-    scale: number
-  }
+  description: Description
 }
 
 export interface Actor extends Renderable {
   onUpdate: (keys: any) => void
 }
 
-export interface Visual {
+export interface Skin {
   img: HTMLImageElement
   anims: {
     [key: string]: Animation

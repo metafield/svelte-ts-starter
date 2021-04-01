@@ -1,7 +1,7 @@
 <script lang="ts">
   import kd from 'keydrown'
   import { onMount } from 'svelte'
-  import { createPlayer } from './engine/Actors/Player'
+  import { Animator, Player } from './engine/Actors/Player'
   import { createAtlas } from './engine/atlas'
   import { createRenderer } from './engine/createRenderer'
 
@@ -10,7 +10,10 @@
   onMount(async () => {
     const atlas = await createAtlas()
     const render = await createRenderer(canvas.getContext('2d'))
-    const player = createPlayer(atlas.warrior)
+    const player = new Player(
+      atlas.warrior,
+      new Animator(atlas.warrior.anims['idle'])
+    )
 
     function gameLoop() {
       kd.tick()
