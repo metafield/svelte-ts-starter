@@ -10,15 +10,21 @@ import type {
 export class Animator {
   frameIndex = 0
   lastUpdate = performance.now()
+  animationResolved
+  animation
 
-  constructor(private animation: Animation) {}
+  constructor(animation: Animation) {
+    this.setAnimation(animation)
+  }
 
   advance(amount: number) {
     let nextValue = this.frameIndex + amount
 
     if (this.frameIndex === this.animation.length - 1) {
-      // call onEnd subscribers
+      // call onEnd subscribers / promises
+      console.log(`${this.animation.name} ending`)
       this.animation = null
+      this.animationResolved(true)
       return
     }
 
@@ -40,42 +46,86 @@ export class Animator {
   }
 
   setAnimation(animation: Animation) {
-    // TODO: not sure if we want to do nothing if the ani is the same yet
+    return new Promise((res, rej) => {
+      // TODO: not sure if we want to do nothing if the ani is the same yet
+      if (animation.name === this?.animation?.name) {
+        rej(`this animation: ${animation.name} is already playing`)
+        return
+      }
 
-    if (animation.name === this?.animation?.name) return
-
-    this.frameIndex = 0
-    this.lastUpdate = performance.now()
-    this.animation = animation
+      this.frameIndex = 0
+      this.lastUpdate = performance.now()
+      this.animation = animation
+      console.log('animation changed to ' + animation.name)
+      // resolve the animation once it is completed
+      this.animationResolved = res
+    })
   }
 }
 
 export class Player implements Actor {
   description: Description
-  state: 'standing' | 'crouching' | 'running' = 'standing' // belongs in desc?
+  state: 'standing' | 'crouching' | 'running' | 'toCrouching' | 'attacking' =
+    'standing' // belongs in desc?
 
-  constructor(private skin: Skin, private animator: Animator) {}
+  constructor(private skin: Skin, public animator: Animator) {}
 
   setDescription(description: Description) {
     this.description = description
   }
 
-  private handleKeys(keys: any) {
-    if (keys.D.isDown()) {
-      this.animator.setAnimation(this.skin.anims.run)
-      return
+  private async handleKeys(keys: any) {
+    if (keys.F.isDown()) {
+      this.state = 'attacking'
+      if (this.animator.animation !== this.skin.anims.slash) {
+        await this.animator.setAnimation(this.skin.anims.slash)
+        this.state = 'standing'
+      }
     }
 
-    this.animator.setAnimation(this.skin.anims.idle)
+    if (keys.D.isDown()) {
+      this.state = 'running'
+    } else if (this.state === 'running') {
+      this.state = 'standing'
+    }
+
+    if (
+      keys.S.isDown() &&
+      this.state !== 'toCrouching' &&
+      this.state !== 'crouching'
+    ) {
+      this.state = 'toCrouching'
+      await this.animator.setAnimation(this.skin.anims.crouch)
+      this.state = 'crouching'
+      this.animator.setAnimation(this.skin.anims.crouchIdle)
+      return
+    } else if (!keys.S.isDown() && this.state === 'crouching') {
+      this.state = 'standing'
+    }
+
+    switch (this.state) {
+      case 'crouching':
+        if (this.animator.animation !== this.skin.anims.crouchIdle)
+          this.animator.setAnimation(this.skin.anims.crouchIdle)
+        break
+      case 'running':
+        if (this.animator.animation !== this.skin.anims.run)
+          this.animator.setAnimation(this.skin.anims.run)
+        break
+      case 'standing':
+        if (this.animator.animation !== this.skin.anims.idle)
+          this.animator.setAnimation(this.skin.anims.idle)
+        break
+    }
   }
 
   onUpdate(keys: any) {
-    this.animator.update()
     this.handleKeys(keys)
     this.setDescription({
       scale: 4,
       sourceRect: this.animator.getFrame(),
       sourceImg: this.skin.img,
     })
+    this.animator.update()
   }
 }

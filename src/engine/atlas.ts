@@ -25,14 +25,14 @@ export const createAtlas = async () => {
     anims: {
       idle: createAnim('idle', warriorSheet.slice(0, 6), 150, false),
       run: createAnim('run', warriorSheet.slice(6, 8), 100, false),
-      crouch: createAnim('crouch', warriorSheet.slice(63, 5), 150, true),
+      crouch: createAnim('crouch', warriorSheet.slice(63, 5), 100, true),
       crouchIdle: createAnim(
         'crouchIdle',
         warriorSheet.slice(64, 3),
         300,
         false
       ),
-      slash: createAnim('slash', warriorSheet.slice(14, 12), 75, true),
+      slash: createAnim('slash', warriorSheet.slice(14, 12), 56, true),
     },
   }
 

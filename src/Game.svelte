@@ -6,14 +6,15 @@
   import { createRenderer } from './engine/createRenderer'
 
   let canvas: HTMLCanvasElement
+  let player: Player
 
   onMount(async () => {
     const atlas = await createAtlas()
-    const render = await createRenderer(canvas.getContext('2d'))
-    const player = new Player(
+    player = new Player(
       atlas.warrior,
       new Animator(atlas.warrior.anims['idle'])
     )
+    const render = await createRenderer(canvas.getContext('2d'))
 
     function gameLoop() {
       kd.tick()
@@ -26,6 +27,9 @@
   })
 </script>
 
+{#if player}
+  <h2>{player.animator.frameIndex}</h2>
+{/if}
 <canvas bind:this={canvas} height={800} width={600} />
 
 <style>
