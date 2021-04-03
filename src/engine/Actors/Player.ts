@@ -1,11 +1,4 @@
-import type {
-  Actor,
-  Animation,
-  Description,
-  Rect,
-  Renderable,
-  Skin,
-} from '../types'
+import type { Actor, Animation, Description, Rect, Skin } from '../types'
 
 export class Animator {
   frameIndex = 0
@@ -68,25 +61,43 @@ export class Player implements Actor {
   state: 'standing' | 'crouching' | 'running' | 'toCrouching' | 'attacking' =
     'standing' // belongs in desc?
 
-  constructor(private skin: Skin, public animator: Animator) {}
+  constructor(private skin: Skin, public animator: Animator) {
+    this.description = {
+      scale: { x: 4, y: 4 },
+      sourceRect: this.animator.getFrame(),
+      sourceImg: this.skin.img,
+      xFlipped: true,
+      yFlipped: false,
+    }
+  }
 
-  setDescription(description: Description) {
-    this.description = description
+  // TODO: type this
+  setDescription(key, value) {
+    this.description[key] = value
   }
 
   private async handleKeys(keys: any) {
+    if (keys.A.isDown() && !keys.D.isDown()) {
+      this.setDescription('xFlipped', true)
+      this.state = 'running'
+    } else if (this.state === 'running') {
+      this.state = 'standing'
+    }
+
+    if (keys.D.isDown()) {
+      this.setDescription('xFlipped', false)
+
+      this.state = 'running'
+    } else if (this.state === 'running' && !keys.A.isDown()) {
+      this.state = 'standing'
+    }
+
     if (keys.F.isDown()) {
       this.state = 'attacking'
       if (this.animator.animation !== this.skin.anims.slash) {
         await this.animator.setAnimation(this.skin.anims.slash)
         this.state = 'standing'
       }
-    }
-
-    if (keys.D.isDown()) {
-      this.state = 'running'
-    } else if (this.state === 'running') {
-      this.state = 'standing'
     }
 
     if (
@@ -121,11 +132,8 @@ export class Player implements Actor {
 
   onUpdate(keys: any) {
     this.handleKeys(keys)
-    this.setDescription({
-      scale: 4,
-      sourceRect: this.animator.getFrame(),
-      sourceImg: this.skin.img,
-    })
+    this.setDescription('sourceRect', this.animator.getFrame())
+
     this.animator.update()
   }
 }

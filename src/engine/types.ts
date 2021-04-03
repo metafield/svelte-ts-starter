@@ -16,7 +16,9 @@ export type Animation = {
 export interface Description {
   sourceImg: HTMLImageElement
   sourceRect: Rect
-  scale: number
+  scale: { x: number; y: number }
+  xFlipped: boolean
+  yFlipped: boolean
 }
 
 export interface Renderable {
