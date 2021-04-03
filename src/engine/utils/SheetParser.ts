@@ -1,6 +1,6 @@
 import type { Rect } from '../types'
 
-class SpriteGrid {
+class SheetParser {
   constructor(
     public cols: number,
     public rows: number,
@@ -16,7 +16,6 @@ class SpriteGrid {
 
     for (let i = 0; i < amount; i++) {
       x = (i + startIndex) % this.cols
-      console.log('x is: ', x)
       y = ~~((i + startIndex) / this.cols)
 
       cells[i] = {
@@ -31,4 +30,4 @@ class SpriteGrid {
   }
 }
 
-export default SpriteGrid
+export default SheetParser

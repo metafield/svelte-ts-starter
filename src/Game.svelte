@@ -1,18 +1,24 @@
 <script lang="ts">
+  import kd from 'keydrown'
   import { onMount } from 'svelte'
-  import { createPlayer } from './engine/Actors/Player'
+  import { Animator, Player } from './engine/Actors/Player'
+  import { createAtlas } from './engine/atlas'
   import { createRenderer } from './engine/createRenderer'
-  import loadSprites from './engine/utils/loadSprites'
 
   let canvas: HTMLCanvasElement
+  let player: Player
 
   onMount(async () => {
-    await loadSprites()
+    const atlas = await createAtlas()
+    player = new Player(
+      atlas.warrior,
+      new Animator(atlas.warrior.anims['idle'])
+    )
     const render = await createRenderer(canvas.getContext('2d'))
-    const player = await createPlayer()
 
     function gameLoop() {
-      player.onUpdate()
+      kd.tick()
+      player.onUpdate(kd)
       render(player)
       requestAnimationFrame(gameLoop)
     }
@@ -21,6 +27,9 @@
   })
 </script>
 
+{#if player}
+  <h2>{player.animator.frameIndex}</h2>
+{/if}
 <canvas bind:this={canvas} height={800} width={600} />
 
 <style>

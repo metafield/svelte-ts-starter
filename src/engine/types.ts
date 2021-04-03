@@ -7,20 +7,31 @@ export type Rect = {
 
 export type Animation = {
   name: string
-  speed: number
   frames: Rect[]
+  speed: number
+  length: number
+  oneShot: boolean
+}
+
+export interface Description {
+  sourceImg: HTMLImageElement
+  sourceRect: Rect
+  scale: { x: number; y: number }
+  xFlipped: boolean
+  yFlipped: boolean
 }
 
 export interface Renderable {
-  description: {
-    sourceTexture: HTMLImageElement
-    sourceRect: Rect
-    scale: number
-  }
+  description: Description
 }
 
 export interface Actor extends Renderable {
-  texture: HTMLImageElement
-  anims: Animation[]
-  onUpdate: () => void
+  onUpdate: (keys: any) => void
+}
+
+export interface Skin {
+  img: HTMLImageElement
+  anims: {
+    [key: string]: Animation
+  }
 }
